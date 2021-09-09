@@ -40,7 +40,6 @@ const onShowMoreBtnClick = () => {
                 block: 'end',
                 });
         });
-
 };
 
 const onInputFocus = e => e.target.value = '';
