@@ -27,4 +27,16 @@ export default class {
         });
         return queryParams;
     };
+
+    increasePageNumb() {
+        this.page += 1;
+    }
+
+    resetPageNumb() {
+        this.page = 1;
+    }
+
+    newQuerySet(newQuery) {
+        this.query = newQuery;
+    }
 }

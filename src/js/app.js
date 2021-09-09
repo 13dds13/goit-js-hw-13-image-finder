@@ -5,16 +5,16 @@ const debounce = require('lodash.debounce');
 
 
 const parent = '.search-container';
-const searchData = new SearchOptions(parent, 'cat')
+const searchData = new SearchOptions(parent);
 
-const { input, form, showMoreBtn, galleryList, errMsg } = searchData.refs
+const { input, form, showMoreBtn, galleryList, errMsg } = searchData.refs;
 
 const onUserInput = e => {
     const userInput = e.target.value;
     if (!userInput) return
 
-    searchData.query = userInput;
-    searchData.page = 1;
+    searchData.newQuerySet(userInput);
+    searchData.resetPageNumb();
 
     newFetch(searchData.queryParams())
         .then(res => {
@@ -29,7 +29,7 @@ const onUserInput = e => {
 
 
 const onShowMoreBtnClick = () => {
-    searchData.page += 1;
+    searchData.increasePageNumb();
     showMoreBtn.disabled = true;
     newFetch(searchData.queryParams())
         .then(res => {
