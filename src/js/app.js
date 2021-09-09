@@ -1,38 +1,50 @@
+import SearchOptions from './classSearchOptions'
 import newFetch from './apiService';
 import imgsMarkup from '../templates/photo-card.hbs'
 const debounce = require('lodash.debounce');
 
-let currentPage = 1;
-let currentQuery = '';
 
-const searchDiv = document.querySelector('#search-container');
-const form = document.querySelector('#search-form');
-const galleryList = document.querySelector('.gallery');
-const showMoreBtn = document.querySelector('#load-btn');
+const parent = '.search-container';
+const searchData = new SearchOptions(parent, 'cat')
 
-const onInput = e => {
-    const query = e.target.value;
-    
-    if (!query) {
-        return;
-    }
+const { input, form, showMoreBtn, galleryList, errMsg } = searchData.refs
 
-    currentQuery = query;
-    newFetch(query)
+const onUserInput = e => {
+    const userInput = e.target.value;
+    if (!userInput) return
+
+    searchData.query = userInput;
+    searchData.page = 1;
+
+    newFetch(searchData.queryParams())
         .then(res => {
+            if (res.total === 0) {
+                throw new Error('bad request!');
+            }
             galleryList.innerHTML = imgsMarkup(res);
             showMoreBtn.classList.remove('is-hidden');
-        });
+            errMsg.innerHTML = '';
+        }).catch(res => errMsg.innerHTML = res);
 };
 
 
 const onShowMoreBtnClick = () => {
-    currentPage += 1;
-    newFetch(currentQuery, currentPage)
-        .then(res => galleryList.insertAdjacentHTML('beforeend', imgsMarkup(res)));
+    searchData.page += 1;
+    showMoreBtn.disabled = true;
+    newFetch(searchData.queryParams())
+        .then(res => {
+            galleryList.insertAdjacentHTML('beforeend', imgsMarkup(res))
+            showMoreBtn.disabled = false;
+            showMoreBtn.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end',
+                });
+        });
 
 };
 
-form.addEventListener('input', debounce(onInput, 750));
-showMoreBtn.addEventListener('click', onShowMoreBtnClick);
+const onInputFocus = e => e.target.value = '';
 
+form.addEventListener('input', debounce(onUserInput, 750));
+showMoreBtn.addEventListener('click', onShowMoreBtnClick);
+input.addEventListener('focus', onInputFocus);
