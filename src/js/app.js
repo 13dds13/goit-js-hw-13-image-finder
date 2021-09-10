@@ -4,14 +4,17 @@ import imgsMarkup from '../templates/photo-card.hbs'
 const debounce = require('lodash.debounce');
 
 
-const parent = '.search-container';
-const searchData = new SearchOptions(parent);
+const parentS = '.search-container';
+const searchData = new SearchOptions(parentS);
 
-const { input, form, showMoreBtn, galleryList, errMsg } = searchData.refs;
+const { input, form, showMoreBtn, galleryList, errMsg, parent } = searchData.refs;
 
 const onUserInput = e => {
+    e.preventDefault();
+
     const userInput = e.target.value;
-    if (!userInput) return
+
+    if (!userInput || e.target.key === 'Enter') return
 
     searchData.newQuerySet(userInput);
     searchData.resetPageNumb();
@@ -22,9 +25,13 @@ const onUserInput = e => {
                 throw new Error('bad request!');
             }
             galleryList.innerHTML = imgsMarkup(res);
-            showMoreBtn.classList.remove('is-hidden');
+            showMoreBtn.classList.add('show-more-btn');
             errMsg.innerHTML = '';
-        }).catch(res => errMsg.innerHTML = res);
+        }).catch(res => {
+            errMsg.innerHTML = res;
+            galleryList.innerHTML = '';
+            showMoreBtn.classList.remove('show-more-btn');
+            });
 };
 
 
@@ -35,14 +42,17 @@ const onShowMoreBtnClick = () => {
         .then(res => {
             galleryList.insertAdjacentHTML('beforeend', imgsMarkup(res))
             showMoreBtn.disabled = false;
-            showMoreBtn.scrollIntoView({
+            parent.scrollIntoView({
                 behavior: 'smooth',
                 block: 'end',
                 });
         });
 };
 
-const onInputFocus = e => e.target.value = '';
+const onInputFocus = e => {
+    e.target.value = '';
+    errMsg.innerHTML = '';
+};
 
 form.addEventListener('input', debounce(onUserInput, 750));
 showMoreBtn.addEventListener('click', onShowMoreBtnClick);
